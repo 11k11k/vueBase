@@ -1,91 +1,69 @@
 <template>
-  <table class="my-table">
-    <thead>
-      <tr>
-        <th>序号</th>
-        <th>姓名</th>
-        <th>年纪</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="(item,index) in list " :key="item.id">
-        <td>{{index+1}}</td>
-        <td>{{item.name}}</td>
-        <td>{{item.age}}</td>
-        <td>
-          <!-- 自定义row，将item数据传递到row中去，在传递到父组件中去，在父组件中使用obj获取row的封装成的数组数据 -->
-          <slot :row="item" msg="你好"></slot>
-        </td>
-      </tr>
-      <!-- <tr>
-        <td>1</td>
-        <td>小张</td>
-        <td>8</td>
-        <td>
-          <button>删除</button>
-        </td>
-      </tr>
-      <tr>
-        <td>1</td>
-        <td>小张</td>
-        <td>8</td>
-        <td>
-          <button>删除</button>
-        </td>
-      </tr> -->
-    </tbody>
-  </table>
+    <table class="my-table">
+        <thead>
+            <!-- <tr>
+                <th>编号</th>
+                <th>名称</th>
+                <th>图片</th>
+                <th width="100px">标签</th>
+            </tr> -->
+            <slot name="head"></slot>
+        </thead>
+        <tbody v-for="(item, index) in list" :key="item.id">
+        <slot name="body" :item="item" :index="index"></slot>
+
+        </tbody>
+    </table>
 </template>
 
 <script>
 export default {
-  props: {
-    data: Array,
-    list: Array,
-    
-  },
+    props: {
+        list: {
+            type: Array,
+            required: true
+        }
+
+    }
 }
 </script>
 
-<style scoped>
+<style lang="less" >
 .my-table {
-  width: 450px;
-  text-align: center;
-  border: 1px solid #ccc;
-  font-size: 24px;
-  margin: 30px auto;
-}
-.my-table thead {
-  background-color: #1f74ff;
-  color: #fff;
-}
-.my-table thead th {
-  font-weight: normal;
-}
-.my-table thead tr {
-  line-height: 40px;
-}
-.my-table th,
-.my-table td {
-  border-bottom: 1px solid #ccc;
-  border-right: 1px solid #ccc;
-}
-.my-table td:last-child {
-  border-right: none;
-}
-.my-table tr:last-child td {
-  border-bottom: none;
-}
-.my-table button {
-  width: 65px;
-  height: 35px;
-  font-size: 18px;
-  border: 1px solid #ccc;
-  outline: none;
-  border-radius: 3px;
-  cursor: pointer;
-  background-color: #ffffff;
-  margin-left: 5px;
+    width: 100%;
+    border-spacing: 0;
+
+    img {
+        width: 100px;
+        height: 100px;
+        object-fit: contain;
+        vertical-align: middle;
+    }
+
+    th {
+        background: #f5f5f5;
+        border-bottom: 2px solid #069;
+    }
+
+    td {
+        border-bottom: 1px dashed #ccc;
+    }
+
+    td,
+    th {
+        text-align: center;
+        padding: 10px;
+        transition: all 0.5s;
+
+        &.red {
+            color: red;
+        }
+    }
+
+    .none {
+        height: 100px;
+        line-height: 100px;
+        color: #999;
+    }
 }
 </style>
