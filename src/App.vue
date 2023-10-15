@@ -1,25 +1,29 @@
 <template>
   <div class="table-case">
+    <!-- 组件 -->
     <MyTable :list="goods">
+      <!-- 插槽 -->
       <template #head>
         <th>编号</th>
         <th>图片</th>
         <th>名称</th>
         <th width="100px">标签</th>
       </template>
-      <template #body="{item,index}">
+
+      <!-- 插槽 -->
+      <template #body="{ item, index }">
         <!-- obj里面有传来的两个值 -->
         <tr>
           <td>{{ index + 1 }}</td>
           <td>{{ item.name }}</td>
           <td>
-              <img :src="item.picture" />
+            <img :src="item.picture" />
           </td>
           <td>
-              <!-- 标签组件 -->
-              <MyTag v-model="item.tag"></MyTag>
+            <!-- 标签组件 -->
+            <MyTag v-model="item.tag"></MyTag>
           </td>
-      </tr>
+        </tr>
       </template>
     </MyTable>
   </div>

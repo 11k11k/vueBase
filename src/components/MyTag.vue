@@ -25,6 +25,7 @@ export default {
             // })
 
         },
+        
         handleEnter(e) {
             // console.log(e.target.value);
             if(e.target.value.trim()==='')return alert("标签不能为空");
