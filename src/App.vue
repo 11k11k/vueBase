@@ -1,28 +1,36 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div>
+
+    <MyDialog>
+      <template v-slot:title>
+        开头
+      </template>
+    </MyDialog>
+
+
+    <MyDialog>
+      
+      <template #button>
+        按钮一
+      </template>
+    </MyDialog>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
+import MyDialog from "./components/MyDialog.vue"
 export default {
-  name: 'App',
+  data() {
+    return {}
+  },
   components: {
-    HelloWorld
-  }
+    MyDialog,
+  },
 }
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+body {
+  background-color: #b3b3b3;
 }
 </style>
