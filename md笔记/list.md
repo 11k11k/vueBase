@@ -1007,24 +1007,27 @@ isLoading:true
                 }
                }
            );
+      
+      this.$router.push('search')
       ```
 
       使用路径跳转到对应的路径，
 
       适合简单路径
-
+      
    2. ```js
       this.$router.push(
               {
                 name:'search'
               }
             )
+      this.$router.push('search')
       ```
-
+      
       在规则里面定义name，使用name跳转，
-
+      
       适合路径长
-
+      
    3. ```js
       data(){
       return {
@@ -1049,9 +1052,9 @@ isLoading:true
       
       //适合传递多个参数
       ```
-
+   
    4. 动态路由传参
-
+   
       ```js
       {name:'search' path:'/search/:words',components:Search}
       -----------------
@@ -1059,12 +1062,13 @@ isLoading:true
       path:`/search/${this.valueData}`
       
       })
+      //直接在路径里面写
       -----------------
       this.$route.params.words
       ```
-
+   
    5. name命名方式传参
-
+   
       ```
       this.$router.push({
       name:'search',
@@ -1076,9 +1080,9 @@ isLoading:true
       }
       })
       ```
-
+   
       总的意思就是跳转到我想要到的地址，然后把参数携带过去，并由到达的地址的组件获取
-
+   
       push                                                        ?params 										$route	
 
 ​	
@@ -1135,7 +1139,91 @@ price decimal(8,2) not null comment '价格，小数，使用dicimal()'
 
          只查询到左边的表也就是tb_user u的数据
 
-      2. 
+# **List11**
+
+- [ ] vue
+- [ ] mysql
+
+
+
+## Vue
+
+1. **一二级路由切换**
+
+   ```js
+   const router = new VueRouter({
+     routes: [
+       {
+         path: '/', component: Layout,
+         children: [
+   
+           { path: '/article', component: Article },
+           { path: '/collect', component: Collect },
+           { path: '/like', component: Like },
+           { path: '/User', component: User }
+   
+         ]
+       },
+   ```
+
+   ---
+
+   ```js
+    <div class="content">
+         <router-view></router-view>
+         内容
+       </div>
+       <nav class="tabbar">
+   
+         <router-link to="/article">面经</router-link>
+         <router-link to="/collect">收藏</router-link>
+         <router-link to="/like">喜欢</router-link>
+         <router-link to="/user">我的</router-link>
+   ```
+
+   思想：哪里要用路由就哪里加，然后在路由规则里面配置就行
+
+2. ```js
+   @click="$router.push(`/detail?id=${item.id}`)"
+   
+   this.$router.push({
+       path:'detail',
+       query:{
+           id=${item.id}
+       }
+   })
+   ----------------------
+   this.$route.query.id
+   ```
+
+   ```js
+   @click="$router.push(`/detail/${item.id}`)"
+   
+   this.$router.push({
+       path:'/detail/${item.id}',
+    
+   })
+   //还不如简写
+   ------------------------------------------
+   this.$route.params.id
+   
+   --------------------------------
+   new VueRouter({
+   routes:[
+   {
+   ...
+   }
+   ...
+   ,
+   {
+   path:'/detail/:id',component:detail
+   }
+   ]
+   
+   })
+   ```
+
+   3.返回上一页`$router.back()`
 
  
 
