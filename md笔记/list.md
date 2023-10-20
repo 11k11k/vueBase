@@ -1223,9 +1223,54 @@ price decimal(8,2) not null comment '价格，小数，使用dicimal()'
    })
    ```
 
-   3.返回上一页`$router.back()`
+3. 返回上一页`$router.back()`
 
- 
+4. 组件缓存keep-alive
+
+   1. ```js
+       <div class="h5-wrapper">
+          <!-- 所有一级路由里的组件都被缓存 -->
+          <keep-alive>
+            <router-view></router-view>
+          </keep-alive>
+         
+        </div>
+      ```
+
+   2. keep-alive的三个属性inclue,exclude,max
+
+      ```js
+          <keep-alive include="LayoutPage">
+            <router-view></router-view>
+          </keep-alive>
+      
+      -----------------------------------
+          还可以去定义个组件数组，到时候可以吧组件封装进去
+      ```
+
+      那个需要缓存，就include哪个组件名
+
+      两个生命周期，activated deactivated,你打开就activated,你看不到就deactivated
+
+
+
+
+2. 自定义创建项目-Vue-cli
+   1. `vue create vueName`
+3. vuex概述
+
+   
+
+
+   1. 状态数据管理工具
+   2. 某个状态在多个组件使用
+   3. 多个组件共同维护一份数据
+   4. 数据集中化管理
+   5. 响应式变化
+   6. 操作简洁
+
+   ![image-20231020114539874](D:\md笔记\image-20231020114539874.png)
+
 
 
 

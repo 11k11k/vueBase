@@ -1,6 +1,10 @@
 <template>
   <div class="h5-wrapper">
-    <router-view></router-view>
+    <!-- 所有一级路由里的组件都被缓存 -->
+    <keep-alive include="LayoutPage">
+      <router-view></router-view>
+    </keep-alive>
+
   </div>
 </template>
 
@@ -21,6 +25,7 @@ body {
   .content {
     margin-bottom: 51px;
   }
+
   .tabbar {
     position: fixed;
     left: 0;
@@ -32,12 +37,14 @@ body {
     display: flex;
     background: #fff;
     border-top: 1px solid #e4e4e4;
+
     a {
       flex: 1;
       text-decoration: none;
       font-size: 14px;
       color: #333;
       -webkit-tap-highlight-color: transparent;
+
       &.router-link-active {
         color: #fa0;
       }

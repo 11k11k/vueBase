@@ -1,6 +1,6 @@
 <template>
   <div class="article-page">
-    <div class="article-item" @click="$router.push(`/detail/id=${item.id}`)" v-for="(item) in articles" :key=item.id>
+    <div class="article-item" @click="$router.push(`/detail/${item.id}`)" v-for="(item) in articles" :key=item.id>
       <div class="head">
         <img
           :src="item.creatorAvatar"
