@@ -1148,42 +1148,44 @@ price decimal(8,2) not null comment '价格，小数，使用dicimal()'
 
 ## Vue
 
-1. **一二级路由切换**
+### **一二级路由切换**
 
-   ```js
-   const router = new VueRouter({
-     routes: [
-       {
-         path: '/', component: Layout,
-         children: [
-   
-           { path: '/article', component: Article },
-           { path: '/collect', component: Collect },
-           { path: '/like', component: Like },
-           { path: '/User', component: User }
-   
-         ]
-       },
-   ```
+```js
+const router = new VueRouter({
+  routes: [
+    {
+      path: '/', component: Layout,
+      children: [
 
-   ---
+        { path: '/article', component: Article },
+        { path: '/collect', component: Collect },
+        { path: '/like', component: Like },
+        { path: '/User', component: User }
 
-   ```js
-    <div class="content">
-         <router-view></router-view>
-         内容
-       </div>
-       <nav class="tabbar">
-   
-         <router-link to="/article">面经</router-link>
-         <router-link to="/collect">收藏</router-link>
-         <router-link to="/like">喜欢</router-link>
-         <router-link to="/user">我的</router-link>
-   ```
+      ]
+    },
+```
 
-   思想：哪里要用路由就哪里加，然后在路由规则里面配置就行
+---
 
-2. ```js
+```js
+ <div class="content">
+      <router-view></router-view>
+      内容
+    </div>
+    <nav class="tabbar">
+
+      <router-link to="/article">面经</router-link>
+      <router-link to="/collect">收藏</router-link>
+      <router-link to="/like">喜欢</router-link>
+      <router-link to="/user">我的</router-link>
+```
+
+### 思想：
+
+哪里要用路由就哪里加，然后在路由规则里面配置就行
+
+1. ```js
    @click="$router.push(`/detail?id=${item.id}`)"
    
    this.$router.push({
@@ -1223,63 +1225,353 @@ price decimal(8,2) not null comment '价格，小数，使用dicimal()'
    })
    ```
 
-3. 返回上一页`$router.back()`
+2. 返回上一页`$router.back()`
 
-4. 组件缓存keep-alive
+### 组件缓存keep-alive
 
-   1. ```js
-       <div class="h5-wrapper">
-          <!-- 所有一级路由里的组件都被缓存 -->
-          <keep-alive>
-            <router-view></router-view>
-          </keep-alive>
-         
-        </div>
+1. ```js
+    <div class="h5-wrapper">
+       <!-- 所有一级路由里的组件都被缓存 -->
+       <keep-alive>
+         <router-view></router-view>
+       </keep-alive>
+      
+     </div>
+   ```
+
+2. keep-alive的三个属性inclue,exclude,max
+
+   ```js
+       <keep-alive include="LayoutPage">
+         <router-view></router-view>
+       </keep-alive>
+   
+   -----------------------------------
+       还可以去定义个组件数组，到时候可以吧组件封装进去
+   ```
+
+   那个需要缓存，就include哪个组件名
+
+   两个生命周期，activated deactivated,你打开就activated,你看不到就deactivated
+
+3. 自定义创建项目-Vue-cli
+   1. `vue create vueName`
+
+### vuex概述
+
+
+      1. 状态数据管理工具
+      2. 某个状态在多个组件使用
+      3. 多个组件共同维护一份数据
+      4. 数据集中化管理
+      5. 响应式变化
+      6. 操作简洁
+
+#### 创建一个空仓库
+
+1. yarn add vuex@3 
+
+   1. 确认好版本对不对应，package.config的vue 版本依赖应该是2.17.3
+
+   2. 更改完版本之后，应该删除node_ modules `rmdir /s /q node_modules`然后进行`npm install`
+
+      最后清理缓存`npm cache clean --force`
+
+2. 新建vuex模块文件
+
+   1. 新建store/index.js存放vuex
+
+3. 创建仓库
+
+   1. ```
+      import Vue import 'vue'
+      import Vuex import 'vuex'
+      Vue.use(Vuex)
+      const store=new Vuex.Store()
+      export default store
       ```
 
-   2. keep-alive的三个属性inclue,exclude,max
+4. main.js导入挂载
+
+   1. ```
+      import store from '@/store/index'
+      import Vue from 'vue'
+      import App from './App.vue'
+      Vue.config.productionTip=false
+      new Vue({
+      render:h=>h(App),
+      store
+      }).$mount('#app')
+      ```
+
+      
+
+#### state状态
+
+1. 存放共享数据
+
+   ```js
+   const store=new Vuex.Store({
+   state:{
+   count:101
+   }
+   })
+   ```
+
+2. 使用数据
+
+   1. 通过store直接访问
 
       ```js
-          <keep-alive include="LayoutPage">
-            <router-view></router-view>
-          </keep-alive>
-      
-      -----------------------------------
-          还可以去定义个组件数组，到时候可以吧组件封装进去
+      {{$store.state.xxxx}}
+      组件中:this.$store.state.xxx
+      js模块中:$store.state.xxxx
       ```
 
-      那个需要缓存，就include哪个组件名
+   2. 通过辅助函数（简化）
 
-      两个生命周期，activated deactivated,你打开就activated,你看不到就deactivated
+      mapState辅助函数
+
+      1. 导入`import {mapState} from 'vuex'`
+
+      2. 数组方式引入state`mapState(['count'])`
+
+         ```js
+         computed:{
+           ...mapState(['count'])
+         }
+         =>
+         computed:{
+         count(){
+         return this.$store.state.count
+         }
+         }
+         ----------------------
+         {{count}}
+         ```
+
+#### mutations
+
+1. 组件不能直接修改仓库的数据，`strict:true`开启严格模式：检测不规范的代码
+2. ```js
+   change(state,n){
+   state.count+=n
+   }
+   ---
+   this.$store.commit('change',n)
+   ```
+
+   使用mapMutation
+
+   ```js
+   computed:{
+   ...mapMutat([
+   'change'
+   ])
+   }
+   ```
+
+3. ```js
+   new Vuex.Store({
+   state:{
+   count:100,
+   Str:'newnew'
+   },
+   change(state,n){
+   state.count+=n
+   },
+   changeStr(state,newStr){
+   state.Str=newStr
+   }
+   action:{
+   changeCountAction(context,num){
+   setTimeout(()=>{
+   context.commit('changeStr',num),3000
+   })
+   
+   }
+   }
+   
+   })
+   ------
+   handleChange(n){
+   this.$store.dispatch('changeStr',n)
+   }
+   
+   ```
+
+
+#### Actions
+
+```js
+import {mapActions} from 'vuex'
+methods:{
+...mapAction([
+'changeStr'
+])
+}
+```
+
+```
+
+```
 
 
 
+#### getters
 
-2. 自定义创建项目-Vue-cli
-   1. `vue create vueName`
-3. vuex概述
+1. 对数组数据进行处理
+
+   ```js
+   state:{
+   list:[1,2,3,4,5,6,7]
+   }
+   ---
+   new Vuex.Store({
+       ...
+       strict:true,
+       state:{},
+       mutations:{},
+       actions:{
+           setTimeout(()=>{
+           ,3000
+       })
+       }
+       getters:{
+           filterList(state){
+               return state.list.filter(item=>item>5)
+           }
+       }
+   })
+       
+   ----
+   this.$store.state.list
+   
+   ---
+   import {mapGetters} from 'vuex'
+   computed:{
+       ...mapGetters([
+           
+           'filterList'
+       ])
+   }
+   ```
 
    
 
 
-   1. 状态数据管理工具
-   2. 某个状态在多个组件使用
-   3. 多个组件共同维护一份数据
-   4. 数据集中化管理
-   5. 响应式变化
-   6. 操作简洁
 
-   ![image-20231020114539874](D:\md笔记\image-20231020114539874.png)
+给son组件的button添加点击事件handlerChange，更改数值加一，数值是state仓库里在仓库中添加count数值，和通过mutations
+
+添加修改数值方法addValue,	
 
 
 
+用辅助函数，直接在要用到的组件里面添加方法，和辅助方法，辅助方法里面添加仓库里的方法，让组件事件里可以使用到仓库里的方法
 
+就是调用仓库的方法，只是使用前需要将方法名定义到组件中，使用辅助方法定义=>...mapMutation(['subData'])
 
 
 
 
 
+![image-20231021203451015](D:\md笔记\image-20231021203451015.png)
 
+
+
+
+
+#### moudules
+
+##### 模块化仓库
+
+1. 将仓库的文件index.js拆分成几个js文件，在里面编写各个类
+
+   ```js
+   const state={
+       age=11,
+       name="xiaoming"
+   }
+   const mutations={}
+   const getters={},
+   const actions={}
+   //将数据导出
+   export default{
+       //开启命名空间
+       namespaced=true,
+   state,
+   mutations,
+   getters,
+   actions
+   
+   }
+   ```
+
+   ```js
+   --index.js
+   //将模块导入
+   import user from '@/store/modules/user.js'
+   
+   new Vuex.Store({
+   
+   ...,
+   modules:{
+   //使用模块
+   user
+   }
+   })
+   ```
+
+2. 使用模块中的数据
+
+   ```
+   
+   computed:{
+   ...mapState{'user',['age','name']}
+   ...mapGetters{'user',['upper']}
+   },
+   methods:{
+   ...mapMutations{'user',['sumDataM']},
+   ...mapActions{'user',['addTouch']},
+   add(n){
+   this.$store.commit('user/sumDataM',n)
+   },
+   addM(n){
+   this.$store.dispatch('user/')
+   }
+   }
+   
+   ---
+   const getters={
+   upper(state){
+   state.vData='cd'
+   }
+   }
+   const mutations={
+   sumDataM(state,n){
+   state.num+=n
+   }
+   }
+   const actions={
+   addTouch(context,n){
+   setTimeOut(()=>{
+   context.commit('sumDataM',n)
+   
+   })
+   }
+   }
+   
+   ----
+   <div>{{$store.getters[user/upper]}}</div>
+   <div>{{upper}}</div>
+   <button @click='sumDataM(2)'>+2</button>
+   <button @click='add(1)'>+1</button>
+   <button @click='addTouch(1)'>+1</button>
+   <button @click='addM(1)'>+1</button>
+   
+   ```
+
+   
 
 
 
