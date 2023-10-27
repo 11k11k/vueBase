@@ -976,7 +976,7 @@ isLoading:true
 
 1. 查询参数传参`/path?key=...` , `this.$route.query.key`获取数据...，适合多个参数
 
-2. 动态路由传参 `/path/words`,`this.$route.params.words`获取数据 `/path/:words`配置路由规则，传单个参数
+2. 动态路由传参 `/path/:words`,`this.$route.params.words`获取数据 `/path/:words`配置路由规则，传单个参数
 
    `/path/words?`？:就算没有参数也能匹配到组件
 
@@ -1140,11 +1140,6 @@ price decimal(8,2) not null comment '价格，小数，使用dicimal()'
          只查询到左边的表也就是tb_user u的数据
 
 # **List11**
-
-- [ ] vue
-- [ ] mysql
-
-
 
 ## Vue
 
@@ -1537,7 +1532,7 @@ methods:{
    this.$store.commit('user/sumDataM',n)
    },
    addM(n){
-   this.$store.dispatch('user/')
+   this.$store.dispatch('user/addTouch',n)
    }
    }
    
@@ -1573,6 +1568,106 @@ methods:{
 
    
 
+### 项目总结
+
+修改仓库数据在mutations里面修改
+
+获取数据或者修改后端数据在action里面=> axios.patch(`.....\${obj.id}`,{count:obj.id}
+
+App.vue里面获取数据后分发给子组件数据=>:item=item props:{item:{type:Object}}
+
+子组件里数据通过写方法发送到对应模块的方法中`cart/updateCount`,{count:newCount}
+
+# List12
+
+## Vue
+
+### Vant组件库
+
+1. 安装vant`yarn add vant@latest-v2-S -d `
+
+2. 使用vant 组件
+
+   ```js
+   //按需导入
+   # 安装插件
+   npm i babel-plugin-import -D
+   // 在.babelrc 中添加配置
+   // 注意：webpack 1 无需设置 libraryDirectory
+   {
+     "plugins": [
+       ["import", {
+         "libraryName": "vant",
+         "libraryDirectory": "es",
+         "style": true
+       }]
+     ]
+   }
+   ```
+
+   ```js
+   在util包里面导入vant.ui组件
+   import { Button } from 'vant'
+   import Vue from 'vue'
+   Vue.use(Button)
+   -------------
+   
+   ```
+
+### vw适配
+
+1. 安装插件`yarn add postcss-px-to-viewport@1.1.1 -D`
+
+2. 根目录新建postcss.config文件，填入配置
+
+   ```
+   module.export={
+   plugins:{
+   'postcss-px-to-viewport':{
+   viewportWidth:375
+   }
+   }
+   }
+   ```
+
+   
+
+
+
+### 智慧商场项目
+
+1. 封装axios request.js
+
+   1. 创建实例和配置基础地址，导出对应实例 instance
+   2. 配置响应拦截器和请求拦截器，在响应拦截器里配置返回数据return response.data
+
+2. 验证码图片
+
+   1. 获取数据`base64,key`
+
+      ```js
+      methods:{
+      async getPinCode(){
+      const {data:{base64,key}}=await request.get('.../../..')
+      this.picUrl=base64
+      this.pickey=key
+      }
+      }
+      ----
+      data(){return {picUrl:'',picKey=''}}
+      ----
+      //进页面前刷新数据
+      created(){
+      this.getPinCode()
+      }
+      ----
+      
+      
+      ```
+
+
+
+## Mysql
 
 
 
@@ -1590,7 +1685,29 @@ methods:{
 
 
 
-## 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## MFC
 
