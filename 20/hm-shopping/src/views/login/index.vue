@@ -1,6 +1,6 @@
 <template>
   <div class="login">
-    <van-nav-bar title="标题" right-text="按钮" left-arrow @click-left="left"  />
+    <van-nav-bar title="标题" right-text="按钮" left-arrow @click-left="$router.go(-1)" />
     <div class="container">
       <div class="title">
         <h3>手机号登录</h3>
@@ -18,7 +18,7 @@
         <div class="form-item">
           <input v-model="msgCode" class="inp" placeholder="请输入短信验证码" type="text">
           <button @click="getCode">
-
+            {{ second === totalSecond ? "获取验证码" : second + "秒后发送" }}
           </button>
         </div>
       </div>
@@ -29,7 +29,10 @@
 </template>
 
 <script>
-import request from '@/utils/request'
+
+import { getPinCode, getMsgCode, codeLogin } from '@/api/login'
+import { Toast } from 'vant'
+
 export default {
   name: 'LoginIndex',
   async created () {
@@ -37,32 +40,77 @@ export default {
   },
   data () {
     return {
-      picCode: '',
+      // 接收手机号跟验证码并验证是否正确
       picUrl: '',
       picKey: '',
+
+      totalSecond: 60, // 总秒数
+      second: 60, // 当前秒数，
+      timer: '',
+
       mobile: '',
-      msgCode: ''
+      msgCode: '',
+      picCode: ''
     }
   },
 
   methods: {
+    // TODO:获取数据中的base64和key并发送给
     async getPinCode () {
-      const { data: { base64, key } } = await request.get('/captcha/image')
+      const { data: { base64, key } } = await getPinCode()
       this.picUrl = base64
       this.picKey = key
+      Toast('获取图形验证码成功')
     },
-    getCode () {
+    validFn () {
+      if (!/^1[3-9]\d{9}$/.test(this.mobile)) {
+        this.$toast('请输入正确的手机号')
+        return false
+      }
+      if (!/^\w{4}$/.test(this.picCode)) {
+        this.$toast('请输入正确的图形验证码')
+        return false
+      }
+      return true
+    },
+    async getCode () {
+      if (!this.validFn()) {
+        return
+      }
+      if (!this.timer && this.second === this.totalSecond) {
+        // 发送请求
+        await getMsgCode(this.picCode, this.picKey, this.mobile)
 
+        this.$toast('短信发送成功，注意查收')
+        this.timer = setInterval(() => {
+          this.second--
+          if (this.second < 0) {
+            clearInterval(this.timer)
+            this.timer = null
+            this.second = this.totalSecond
+          }
+        }, 1000)
+      }
     },
-    login () {
 
-    },
-    left () {
-      this.$router.push({
-        path: '/'
-      })
+    async login () {
+      if (!this.validFn()) {
+        return
+      }
+      if (!/^\d{6}$/.test(this.msgCode)) {
+        this.$toast('请输入正确的手机验证码')
+        return
+      }
+      const res = await codeLogin(this.mobile, this.msgCode)
+      this.$store.commit('user/setUserInfo', res.data)
+      // console.log(res)
+      this.$toast('登录成功')
+      this.$router.push('/')
     }
 
+  },
+  destroyed () {
+    clearInterval(this.timer)
   }
 }
 </script>

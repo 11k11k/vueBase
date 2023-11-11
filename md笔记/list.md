@@ -1636,34 +1636,632 @@ App.vue里面获取数据后分发给子组件数据=>:item=item props:{item:{ty
 
 ### 智慧商场项目
 
+#### 登录页面
+
+##### 配置路由 
+
+1. 创建所对应的文件夹极其vue文件，漏掉的以后在补充
+2. 配置路由规则：一级路由router / index.js
+3. 导入路由vant组件
+   1. yarn安装vant
+   2. utils/vant-ui.js 按需导入组件
+   3. 复制代码
+   4. 修改代码
+   5. 配置二级路由
+      1. 在对应页面的文件夹里创建对应的文件夹及其vue文件
+      2. 配置路由规则：二级路由chirldren:[{}
+   6. 开启路由模式 `<van-tabber route><van-tabber-item to="/home"></van-tabber-item></van-tabber>`
+   7. 提供路由出口`<router-view></router-view>`
+   8. 重定向到主页面`redirect:'/home'`
+
+##### 实现静态布局
+
+1. 新建styles/cmmon.less重置默认样式
+2. main.js导入common.less
+3. 图片拷贝到assets目录
+
 1. 封装axios request.js
 
    1. 创建实例和配置基础地址，导出对应实例 instance
+
    2. 配置响应拦截器和请求拦截器，在响应拦截器里配置返回数据return response.data
 
-2. 验证码图片
+   3. 验证码图片
 
-   1. 获取数据`base64,key`
+      1. 获取数据`base64,key`
+
+         ```js
+         methods:{
+         async getPinCode(){
+         const {data:{base64,key}}=await request.get('.../../..')
+         this.picUrl=base64
+         this.pickey=key
+         }
+         }
+         ----
+         data(){return {picUrl:'',picKey=''}}
+         ----
+         //进页面前刷新数据
+         created(){
+         this.getPinCode()
+         }
+         ----
+         
+         
+         ```
+
+##### 封装api模块
+
+1. 新建api文件夹及其模块文件api/login.js
+2. 编写login.js，返回promise值
+3. 按需导入`import {} from 'xx/xxx'`
+4. 有this.跟无this的注意
+
+##### toast轻提示
+
+1. 注册安装，按需导入`import { Toast } from 'vant' Vue.use(Toast)`
+2. 导入调用`import { Toast } from 'vant'  Toast('提示内容')`
+3. 直接调用`this.$toast('提示内容')`
+
+##### 倒计时基础效果
+
+1. 准备数据`data(){return {totalSecond,second,timer:null}}`
+
+2. 给按钮添加点击事件`<button @click="getCode">{{second===totalSecond?'获取验证码':second+'秒后重新发送'}}</button>`
+
+3. 开启倒计时`setInterval(()=>{this.second--},1000)`
+
+   1. 添加判断
 
       ```js
-      methods:{
-      async getPinCode(){
-      const {data:{base64,key}}=await request.get('.../../..')
-      this.picUrl=base64
-      this.pickey=key
+      if(!this.timer&&this.Second===this.totalSecond)
+      {
+      setInterval(()=>{
+      this.second--
+      if(this.second<=0){
+      clearInterval(this.timer)
+      this.seconde=this.totalSecond
+      this.timer=null
       }
+      })
       }
-      ----
-      data(){return {picUrl:'',picKey=''}}
-      ----
-      //进页面前刷新数据
-      created(){
-      this.getPinCode()
-      }
-      ----
-      
-      
       ```
+
+4. 删除计时器`destroyed(){clearInterval(this.timer)}`
+
+##### 校验
+
+1. ```js
+   data(){return{
+    mobile: '',
+         msgCode: '',
+        picCode: ''
+   }} 
+   ```
+
+   
+
+2. 判断手机号和图形验证码输入格式
+
+   ```js
+    validFn () {
+     //以1开头下个数字在3到9之间，接下来的数字要匹配9个数字，最后以数字结尾
+         if (!/^1[3-9]\d{9}$/.test(this.mobile)) {
+           this.$toast('请输入正确的手机号')
+         }
+         if (!/^\w{4}$/.test(this.picCode)) {
+           this.$toast('请输入正确的图形验证码')
+           return false
+         }
+         return true
+       },
+           
+             getCode () {
+         if (!this.validFn()) {
+           return
+         }
+   ```
+
+##### 登录功能
+
+1. 封装登录接口
+
+```js
+// 登录接口
+export const codeLogin = (mobile, smsCode) => {
+  return request.post('/passport/login', {
+    form: {
+      isParty: false,
+      partyData: {},
+      mobile,
+      smsCode
+    }
+  })
+}
+```
+
+2. 登录前的校验和登录成功
+
+```js
+async login () {
+      if (!this.validFn()) {
+        return
+      }
+      if (!/^\d{6}$/.test(this.msgCode)) {
+        this.$toast('请输入正确的手机验证码')
+        return
+      }
+      const res = await codeLogin(this.mobile, this.msgCode)
+      console.log(res)
+      this.$toast('登录成功')
+      this.$router.push('/')
+    }
+```
+
+##### 拦截器处理错误提示
+
+1. 在封装数据传输axios里面进行拦截，utils/request.js
+
+2. 获取后端传过来的数据response.data
+
+3. 判断status是否为200
+
+   ```js
+   const res=response.data
+   //状态码不等于200说明是错误的
+   if(res.status!==200){
+   //返回提示；使用toast
+   Toast(res.message)
+   //返回promise对象
+   return Promise.reject(res.message)
+   }
+   ```
+
+   1. *除了 `Promise.reject`，`Promise` 还有其他两个主要状态：`Pending`（等待）和 `Fulfilled`（已完成）。*
+
+      1. ***Pending（等待）**: 当一个 Promise 对象被创建时，它处于等待状态，这表示异步操作尚未完成，也没有失败。在等待状态下，你可以随时将 Promise 标记为已完成（fulfilled）或拒绝（rejected）。*
+      2. ***Fulfilled（已完成）**: 当异步操作成功完成时，Promise 被标记为已完成状态。你可以使用 `.then` 来指定成功时的回调函数，并获取操作的结果。*
+      3. ***Rejected（拒绝）**: 当异步操作发生错误或被拒绝时，Promise 被标记为拒绝状态。你可以使用 `.catch` 或 `.then(null, errorHandlingFunction)` 来指定错误处理的回调函数。*
+
+      *这三种状态构成了 Promise 的生命周期，允许你更好地处理异步操作的不同情况。当操作成功时，你可以处理成功的情况，而当操作失败时，你可以捕获和处理错误。这种模型提供了一种更清晰、可管理和可预测的方式来处理异步操作*。
+
+4. 使用Toast时，需要导入Toast，因为不在范围内
+
+##### vuex登录权证信息存储
+
+1. 创建user模块modules/user
+
+2. 在store/index.js导入user模块
+
+3. 编写user模块
+
+
+~~~js
+
+//创建所需要的数据 token userId 使用对象接收
+export default{
+//开启命名空间
+namespaced:true,
+state(){
+return{
+	userInfo:{
+	token:'',
+	userId:''
+	}
+},
+mutation:{
+    setUserInfo(state,obj){
+        state.userInfo=obj
+    }
+}
+    
+}
+}
+
+4. 将页面数据传到vuex中
+
+this.$store.commit('user/setUserInfo',res.obj)
+//放在成功登录后，销毁计时器前面
+
+~~~
+
+##### storage存储模块—vuex持久化处理
+
+1. 防止重名或者重复操作，解析获取等，进行封装处理
+
+2. 创建utils/storage.js
+
+3. 写代码
+
+   ```js
+   //通用命名
+   const INFO_KEY='hm_shopping_info'
+   //获取数据
+   export const getInfo = () => {
+   const defaultObj={token:'',userId:''}
+   const result=localStorage.getItem(INFO_KEY)
+   return resutl ? JSON.parse(resutl) : defaultObj
+   }
+   //设置个人信息
+   export const setInfo=()=>{
+   localStorage.setItem(INFO_KEY,JSON.stringify(obj))
+   }
+   //移除个人信息
+   export const removeInfo=()=>{
+   localStoreage.removeItem(INFO_KEY)
+   }
+   ```
+
+4. 设置vuex仓库user模块里的数据获取及其存储
+
+   ```js
+   import { getInfo , setInfo } from '@/utils/storage.js'
+   export default {
+       namespaced: true,
+       state(){
+           return{
+               userInfo:getInfo()
+           }
+       },
+       mutations:{
+           setUserInfo(state,obj){
+               state.userInfo=obj
+               setInfo(obj)
+           }
+       }
+       
+       
+   }
+   ```
+
+##### 添加loading效果
+
+1. 防止多次点击，发动无用请求，提高用户体验
+
+2. 请求时添加loading，响应时删除loading
+
+3. 在拦截器里面写代码,utils/request.js
+
+   ```js
+   instance.interceptors.request.use(function(config){
+       Toast.loading({
+           message:'加载中...',
+           forbidClick:true,
+           //设置样式
+           loadingType:'Spinner',
+           //设置默认时间为一直
+           duration:0
+       })
+   })
+   
+   ----
+   instance.interceptors.response.use(function(response){
+       const res=response.data
+       if(res.status!==200){
+           Toast(res.message)
+          	return Promise.reject(res.message)
+       }else{
+           //清除loading 
+           Toast.clear()
+       }
+       return response.data
+   }),function(error){
+       return Promise.reject(error)
+   }
+   
+   ```
+
+
+##### 页面访问拦截
+
+1. 需要登录后才能进去其他页面
+
+2. 使用导航路由守卫---Vue Router
+
+   ```js
+   
+   const router=new VueRouter({})
+   // 定义数组，存放需要登录的页面
+   const authUrl=['/pay','/myorder']
+   // 全局路由守卫，
+   router.beforeEach((to,from,next)=>{
+   // console.log(to,from,next);
+   //判断是否包含authUrl的路径
+       //如果没有包含就直接通行
+       if(!authUrl.includes(to.path))
+           {
+               next()
+               return
+           }
+       //如果包含通过获取VueX仓库数据token判断是否登录
+       // 获取token,封装到store的getters方法里，导入进来使用
+       const token=store.getters.token
+       if(token)
+           {
+               next()
+           }else{
+               next('/login')
+           }
+   
+   })
+   export router
+   ```
+
+   
+
+#### 首页
+
+##### 获取首页数据 ，之前的获取数据是在登录页面封装的，所以首页数据也要独自封装一个home.js
+
+```js
+export const getDataHome=()=>{
+return request.get('/page/detail',{
+    params:{
+        pageId:0
+    }
+})
+}
+
+```
+
+##### 在页面调用数据，创建页面前获取数据给页面刷新
+
+```js
+async created(){
+const res=await getDataHome()
+}
+```
+
+##### 创建组件，商品列表，使用组件，需要导入组件和组成组件所需要的vant组件
+
+##### 渲染页面
+
+需要创建对应的数据并且把获取到的数据匹配给每个页面数据
+
+然后使用v-for渲染
+
+```js
+bannerList:[],//轮播
+navList:[],//导航
+proList:[]//商品
+
+```
+
+#### 搜索和历史管理功能
+
+##### 需求
+
+```txt
+
+1.搜索历史基本渲染
+2.点击搜索（添加历史）点击搜索按钮或则底下历史记录都能进行搜索，
+3.若没有相同关键字，则直接追加(unshift)到最前面，若已有关键字，则将该关键字移除，在追加
+4，清空历史，5.持久化，刷新数据不消失
+```
+
+##### 搜索历史基本渲染
+
+```
+创建搜索页面静态布局，数据渲染，可以给假数据进行渲染，点击搜索和点击关键字都可以进行搜索，可以共用一个搜索方法，getSearch
+将数据动态渲染，v-model以便获取数据，以及关键字点击事件getSearch(item)，传进去的参数都是动态的，
+```
+
+![image-20231108162544569](C:\Users\赖译骏\AppData\Roaming\Typora\typora-user-images\image-20231108162544569.png)
+
+##### tip
+
+```
+splice(index,1)//从哪里开始删除，删除几个 ，indexof():搜索有没有对应的key值，没有的话返回-1,有的话返回对应的index值
+```
+
+##### 本地存储
+
+```
+本地存储还是需要在stroage.js里面进行封装，因为有定义key值所以不需要担心冲突，然后携带参数跳转到searchList页面去
+携带参数需要动态渲染`?searchList=${key}`
+```
+
+
+
+#### 搜索列表
+
+1. 静态结构，封装接口，获取数据，动态渲染
+
+
+##### 获取页面数据，在api中新建product.js
+
+```
+export const getProductList=(obj)=>{
+const {categoryId,goodsName,page} =obj
+return request.get('/goods/list',{
+params:{
+
+}
+})
+}
+```
+
+##### 获取地址栏的参数
+
+```js
+computed:{
+ querySearch(){
+return this.$route.query.search
+}
+//将数据渲染到搜索框里面并给与默认值
+:value='querySearch|| '搜索商品''
+}
+```
+
+##### 获取数据
+
+```js
+//创建需要的数据
+data(){
+return {
+page:1,
+proList:[]
+}
+}
+async create(){
+const {data:{list}}=await getProductList({
+categoryId:this.$route.query.categoryId,
+goodsName:this.querySearch,
+page:this.page
+})
+this.proList=list.data
+}
+```
+
+##### 动态渲染到子组件
+
+也就是还是商品列表组件`<GoodsItem>`
+
+使用v-for="item in proList"进行渲染，并且将数据传递过去:item="item"
+
+
+
+1. 基于分类页渲染 categoryId 
+
+   1. 静态页面
+
+   2. 封装接口category.js
+
+      ```js
+      export const getCategoryData=()=>{
+      return request.get('/category/list')
+      }
+      ```
+
+   3. 分类页是在首页页面下的子页面
+
+      1. 获取地址栏中的id参数然后变成搜索的参数之一
+
+         ```js
+         // /searchList?categoryId=100023
+         //获取地址栏中的参数
+         this.$route.query.categoryId
+         ```
+
+
+#### 详情页
+
+1. 静态布局，渲染
+
+2. 接口product.js
+
+   ```js
+   export const getProDetail=(goodsId)=>{
+   return request.get('/goods/detail',{
+   params:{
+   goodsId
+   }
+   })
+   }
+   ```
+
+3. 动态获取参数id传递给接口
+
+   ```js
+   goodsId(){this.$route.params.id	}
+   ```
+
+4. 渲染页面
+
+   ```js
+   const {data:{detail}} = awite getProDetail(this.goodsId)
+   ```
+
+5. 评价列表
+
+   1. 查看文档，获取所需要的数据，封装api，
+
+   2. 将api所需要的数据传递过去，可以给默认值
+
+   3. 获取到数据后，渲染页面，判断是数组还是对象
+
+   4. 评价列表用户图片需要设置默认值
+
+      ```js
+      import defaultImg from '@/assets/default-avatar.png'
+      -------
+      <img :src="item.user.avata_url||defaultImg" alt="">
+      ```
+
+6. 商品描述
+
+   1. ```html
+       <div class="desc"  v-html="detailList.content"></div>
+      ```
+
+7. 购物车弹出
+
+   1. 使用vant组件中的actionSheet组件，导入组件
+
+   2. 控制showPannel属性控制弹框的隐藏出现，动态渲染showPannel数据
+
+   3. 封装方法，打开购物车，立即购买都会弹出
+
+   4. 定义mode属性，动态渲染title`:title="mode==='code'?'加入购物车':'立即购买'"`
+
+   5. 写好静态结构，渲染数据到页面
+
+   6. 动态渲染按钮，判断商品是否抢完，是的话不显示购物车和立即购买按钮
+
+      ```html
+      <div v-if="detailStock>0">
+          <div v-if="mode==='cart'">加入购物车</div>
+          <div v-else>立即购买</div>
+      </div>
+      ```
+
+   7. 封装数字组件
+
+      1. 创建组件，导入组件
+
+      2. 数据父传子
+
+         ```
+         使用v-model传递数字（本质上是@input和value）直接v-model="account"传递给子组件
+         //value默认值给1
+         子组件=>props:{value:{type:Number,default:1}}  <input :value="value">
+         ```
+
+      3. 子传父
+
+         ```js
+         handlSub(){
+         //判断不小于一
+         this.$emit('input',this.value-1)
+         }
+         ```
+
+      4. 失去焦点变化
+
+         ```js
+         //失去焦点，将当前的值赋予给value值，然后发送给父组件
+         handleChange(e){
+         //转换成数字
+         const sum=+e.target.value
+         //输入不合法的文本或则输入了负值，回退成原来的值
+         if(isNaN(sum)||sum<1)
+         {
+         e.target.value=this.value
+         return
+         }
+         this.$emit('input',sum)
+         }
+         ```
+
+         
+
+
+
+
+
+
+
+
 
 
 
@@ -1675,15 +2273,144 @@ App.vue里面获取数据后分发给子组件数据=>:item=item props:{item:{ty
 
 
 
+左连接返回左表所有行，如果右表没有匹配的行则null
+
+![image-20231027212023443](D:\md笔记\表结构)
+
+1. 查询所有价格在10元到50元之间且状态为'起售'的菜品，展示出菜品的名称，价格极其菜品的分类名称
+
+```sql
+select d.name,d.price,c.name from dish d left join category c on d.category=c.id where d.price between 10 and 50 and d.status =1;
+```
+
+2.查询每个分类下最贵的菜品，展示出分类的名称，最贵菜品的价格
+
+表：category ,dish
+
+```sql
+select c.name ,max(price) from category c ,dish d where d.categroy_id =c.id group by c.name;
+```
 
 
 
+3. 查询各个分类下 菜品状态为'起售'，并且该分类下菜品总数量大于等于3的分类名称
+
+   表：category ,dish
+
+```sql
+select c.name count(*)from category c,dish d where d.category_id=c.id and d.status=1 group by c.name having count(*) >=3
+```
 
 
 
+5.查询出“商务套餐A”中包含哪些菜品（展示出）
 
+```sql
+select  from dish d ,category c where d.category_id=c.id and 
+select * from tb where status=0 and between price=10 and price=50
+select max(price) from cart 
+```
 
+# List13
 
+## GSAP
+
+1. 导入插件
+
+   ```js
+       <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+       <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+   ```
+
+2. 编写代码
+
+   ```js
+    <script>
+           ScrollTrigger.create({
+               trigger: '.screen2',
+               start: 'top top',
+               end: '+=2500',
+               scrub: true,
+               markers: true, 
+               //改为固定定位
+               pin: true,
+               animation:
+                   gsap.timeline().fromTo('.black', { width: '100px', height: '100px' }, { width: '150px', height: '150px' })
+                       .fromTo('.blue', { left: '55.124em' }, { left: '14.3em' }, "<")
+                       .fromTo('.red', { right: '63.114em' }, { right: '14.3em' }, "<")
+   
+           })  
+       </script>
+   ```
+
+## VIVO官网项目
+
+1. 放大缩小
+
+   ```js
+   ScrollTrigger.create({
+   start:'top top',
+   end:'+=1000',
+   srub:true,
+   animation:
+   gasp.timeline().fromTo('.one',{scale:1},{scale:0.5})
+   .fromTo('.two',{},{},"<")
+   })
+   //当页面缩小，下个页面开始放大
+   ```
+
+2. 使用滚动条控制视频播放
+
+   ```js
+   ScrollTrigger.create({
+   start:'top top',
+   end:'+=4000',
+   srub:true,
+   pin:true,
+   animation(){
+   const summary=document.querySelector('.summary')
+   try{
+   //self.progress:滚动的整体进度
+   //summary.duration:视频的总时长
+   //
+   summary.currentTime=self.progress*summary.duration
+   }
+   catch(e)
+   {console.log(e)}
+   }
+   })
+   ```
+
+3. 播放视频
+
+   ```js
+   ScrollTrigger.create({
+   start:'top top',
+   end:'+=4000',
+   srub:true,
+   
+   animation:
+   gsap.timeline()
+   .fromTo('.title',{opacity:1},{opacity:0})
+   .fromTo('video1',
+   {
+   'margin-top':"100%"
+   },
+   {
+   "margin-top":0,
+   
+   onStart()
+   {
+   const video1=document.querySelector('.video1')
+   video1.currentTime=0//从开头开始
+   vide01.play()//开始播放
+   }
+   }
+   )
+   })
+   ```
+
+   
 
 
 
